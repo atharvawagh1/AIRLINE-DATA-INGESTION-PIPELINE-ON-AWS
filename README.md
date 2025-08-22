@@ -1,102 +1,81 @@
-# AIRLINE-DATA-INGESTION-PIPELINE-ON-AWS
-#https://www.youtube.com/watch?v=35Du026h-KY
+# Airline-Data-Ingestion-Project-On-AWS
+***
+## Project Overview
+This project is an overview of an Event Driven Sales Data Projection data pipeline that Process the Orders data based on their Status and route towards DynamoDB or SQS as per the Business requirement rules.
+An airline daily data ingestion project using S3, S3 Cloudtrail Notification, Event Bridge Pattern Rule, Glue Crawler, Glue Visual ETL, SNS, Redshift, and Step Function
+
+***
+
+## Architectural Diagram
+![AirlineProject](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/AirlineProject.jpg)
+
+***
+
+## Key Steps
+### 1. Create a S3 bucket
+- we will create a S3 bucket "airline-data-input" to store the airport dimension file and daily input files.
+![S3](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/S3.JPG)
 
 
+### 2. Create a Schema in Redshift
+- we will create a "airlines" schema in Redshift with both the Tables.
+    - airport_dim
+    - daily_flights_fact
 
-# AWS Serverless Data Pipeline for Airline Analytics
+- Copy the aiports data from S3 to Reshift aiport_dim table.
 
-![Pipeline Hero](https://images.unsplash.com/photo-1508614999368-9260051291ea?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1200&h=360&fit=crop)
+![Redshift](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/Redshift.JPG)
 
-_A fast, scalable serverless ETL pipeline for processing daily airline flight data on AWS, with instant data ingestion and analytics._  
 
-![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-FF9900?logo=aws-lambda&logoColor=white)
-![AWS Glue](https://img.shields.io/badge/AWS-Glue-FF9900?logo=aws&logoColor=white)
-![AWS Step Functions](https://img.shields.io/badge/AWS-Step%20Functions-FF9900?logo=aws&logoColor=white)
-![Amazon S3](https://img.shields.io/badge/Amazon-S3-569A31?logo=amazons3&logoColor=white)
-![Amazon Redshift](https://img.shields.io/badge/AWS-Redshift-FF9900?logo=amazonaws&logoColor=white)
-![Amazon SNS](https://img.shields.io/badge/Amazon-SNS-FF9900?logo=amazonaws&logoColor=white)
+### 3. Create Glue Crawlers for Redshift Tables
+- we will create glue crawlers for the Redshift tables.
+![RedShift_Crawlers](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/RedShift_Crawlers.JPG)
 
----
+### 4. Create Glue Crawlers for S3 Input data
+- first we will create a dummy hive style folder in our S3 and upload a dummy data file to create the crawler.
+- S3 Data Input File
+![S3-crawler](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/S3-crawler.JPG)
+- S3 Glue Crawler
+![S3-flihgt-data](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/S3-flihgt-data.JPG)
+- Glue Tables
+![glue-tables](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/glue-tables.JPG)
 
-## 🚀 Overview
+### 5. Create Glue ETL Pipeline
+- we will create a Glue Pipeline "flight-data-ingestion-pipeline" in which we join our daily data with the airport-dim and create a denormalized table for further analysis.
+![glue-pipeline](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/glue-pipeline.JPG)
 
-This project demonstrates an **event-driven, fully serverless data pipeline** for airline analytics built on AWS. Flight data files are ingested into Amazon S3 and immediately trigger an AWS Step Functions workflow (via Amazon EventBridge) to process and load the data.  
+### 6. Create SNS
+- we will create a SNS Topic "glue-job-notification" and subscribed by your email address to get the notification.
+![SNS](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/SNS.JPG)
 
-Key AWS services (S3, Glue, Step Functions, Redshift, SNS) are composed into a modular, no-ops pipeline that scales automatically to large datasets.  
 
----
+### 7. Create State Machine using Step Function
+- we will create a State Machine using Step Function service and create a complete workflow in it. 
+![StateMachine](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/StateMachine.JPG)
 
-## 🏗️ Architecture
+### 8. Create an Event Rule
+- we will create an Event Rule "Airline-S3-StepFunc-EventRule" Which will triger the State Machine on a Object Creation in airline data S3 bucket.
+![EventRule](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/EventRule.JPG)
 
-![Architecture Diagram](https://miro.medium.com/v2/resize:fit:1200/1*HhUw6l0eQfJwA1bZrhQwOw.png)
+### 9. Create an Event Bridge Rule
+- we will create an Event Rule "Airline-S3-StepFunc-EventRule" Which will triger the State Machine on a Object Creation in airline data S3 bucket.
+![EventRule](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/EventRule.JPG)
 
-- **Amazon S3** → landing zone for raw flight and airport CSVs  
-- **Amazon EventBridge** → detects new uploads and triggers Step Functions  
-- **AWS Step Functions** → orchestrates Glue Crawler → Glue ETL Job → Redshift Load  
-- **AWS Glue** → schema discovery + ETL (PySpark transformations & enrichment)  
-- **Amazon Redshift** → analytics-ready fact and dimension tables  
-- **Amazon SNS** → success/failure notifications to stakeholders  
+### 9. Upload the input flight data csv file 
+- we will upload the input flight data csv file in the input S3 bucket which will trigger the State machine using Event Bridge Rule.
+- S3 file
+![fileUpload](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/fileUpload.JPG)
 
----
+- Glue Job Run
+![glueJobRun](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/glueJobRun.JPG)
 
-## ✨ Core Features
+- State Machine Run
+![StateMachineSuccess](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/StateMachineSuccess.JPG)
 
-- **Event-driven ingestion** with S3 + EventBridge  
-- **Automated schema discovery** using Glue Crawlers  
-- **Scalable ETL** with Glue PySpark jobs for cleaning, joining, and enrichment  
-- **Analytics-ready Redshift warehouse** with star schema design  
-- **Reliability & visibility** via Step Functions error handling and SNS alerts  
+### 9. Output
+- we can see the Success Notification in your subscribed mail box 
+![mailNoti](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/mailNoti.JPG)
 
----
 
-## ⚙️ Setup Instructions
-
-### Prerequisites
-- AWS Account with IAM access  
-- S3 bucket for raw data  
-- AWS Glue Data Catalog + Crawler + ETL Job  
-- Amazon Redshift cluster (or serverless endpoint)  
-- AWS Step Functions workflow + EventBridge rule  
-- SNS topic for notifications  
-
-### Steps
-1. Create an **S3 bucket** and upload sample `flights.csv` and `airports.csv`.  
-2. Configure **Glue Crawler** to catalog S3 data.  
-3. Deploy **Glue ETL Job** (`glue_job.py`) to transform and enrich data.  
-4. Create **Redshift tables** using the SQL in `redshift_create_table_commands.txt`.  
-5. Deploy **Step Function state machine** (`step_function_code.json`).  
-6. Configure **EventBridge rule** (`event_bridge_rule.json`) to trigger Step Functions on S3 events.  
-7. Subscribe stakeholders to the **SNS topic** for pipeline alerts.  
-8. Upload a new flight CSV to S3 → watch the pipeline execute end-to-end.  
-
----
-
-## ▶️ Demo Flow
-
-![Pipeline Flow](https://lucid.app/publicSegments/view/6a0c4f9e-5ad0-40b4-8db5-2954c0b53f3f/image.png)
-
-1. CSV uploaded to S3  
-2. EventBridge triggers Step Functions  
-3. Step Functions runs Glue Crawler → Glue Job  
-4. Data loaded into Redshift  
-5. SNS notifies success/failure  
-
----
-
-## 📊 Example Redshift Queries
-
-```sql
--- Average departure delay by carrier
-SELECT carrier, AVG(dep_delay) AS avg_dep_delay
-FROM airlines.daily_flights_fact
-GROUP BY carrier
-ORDER BY avg_dep_delay DESC
-LIMIT 10;
-
--- Top origin cities with most delays
-SELECT dep_city, COUNT(*) AS delayed_flights
-FROM airlines.daily_flights_fact
-WHERE dep_delay > 60
-GROUP BY dep_city
-ORDER BY delayed_flights DESC
-LIMIT 10;
+- we can the output data stored in Redshift fact table.
+![factData](https://github.com/yash872/Airline-Data-Ingestion-Project/blob/main/Images/factData.JPG)
